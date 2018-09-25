@@ -23,15 +23,6 @@ name = "Go"
 [[params.language_tabs]]
 key = "shell"
 name = "Shell"
-[[params.language_tabs]]
-key = "ruby"
-name = "Ruby"
-[[params.language_tabs]]
-key = "python"
-name = "Python"
-[[params.language_tabs]]
-key = "javascript"
-name = "Javascript"
 
 #Languages
 [languages]
@@ -39,12 +30,11 @@ name = "Javascript"
 [languages.en]
 languageName = "English"
 weight = 2
-title = "DocuAPI Example Site"
+title = "Crypt0 Cloud Documentation"
 
 # Left sidebar footer items. Use HTMl or Markdown.
 toc_footers = [
 "<a href='#'>Sign Up for a Developer Key</a>",
-"Documentation Powered by [DocuAPI](https://github.com/bep/docuapi)",
 "Hugo Theme by [bep](https://github.com/bep)"
 ]
 [languages.en.blackfriday]
@@ -52,19 +42,18 @@ angledQuotes = false
 hrefTargetBlank = true
 
 
-[languages.nn]
-languageName = "Nynorsk"
+[languages.es]
+languageName = "Español"
 weight = 1
-title = "DocuAPI-døme"
+title = "Documentación de Crypt0 Cloud"
 
 # Left sidebar footer items. Use HTMl or Markdown.
 toc_footers = [
-"<a href='#'>Registrer deg for ein utviklarnøkkel</a>",
-"Dokumentasjonen er driven av [DocuAPI](https://github.com/bep/docuapi)",
+"<a href='#'>Registrate para obtener un App Id</a>",
 "Hugo Theme av [bep](https://github.com/bep)"
 ]
 
-[languages.nn.blackfriday]
+[languages.es.blackfriday]
 # Norwegian uses angled quotes
 angledQuotes = true
 hrefTargetBlank = true

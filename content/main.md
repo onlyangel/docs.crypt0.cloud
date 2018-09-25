@@ -5,208 +5,124 @@ title: API Reference
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Welcome to the Crypt0 Cloud API! You can use the this API with the endpoint where an instance of Crypt0 Cloud is installed, to manage a Nodes and Transactions.
 
-We have language bindings in Shell, Ruby, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+Every node farm under your control need to have a setted up Coordinator Node and before a node can be used, it needs to be added to the farm via the Coordinator Node.
 
-**This example API documentation page was created with [DocuAPI](https://github.com/bep/docuapi/), a multilingual documentation theme for the static site generator [Hugo](http://gohugo.io/).** 
+Every Transaction have to be under a distributed Application, this distributed application is setted up with it's entpoint url by the Coordinator node in all the nodes. This mean that the app is installed and enabled in all nodes and transactions can be added to any node allowing to use the closest node to your client. Also Every time a Transaction is called using the Distributed Application Keys a callback is executed (as a http POST Request) to the registered endpoint for the Application.
 
-# Authentication
+There is two kind of transactions Single Transactions and Group Transactions.
 
-> To authorize, use this code:
+* Single Transaction: this is a transaction that get verified and inserted directly to the ledger under a distributed Application
+* Group Transaction: this transaction describe a sequence of transactions in an application. Each of those transactions is a Single Transaction that refers this group Transaction as its parent.
+
+**For more information about our internal protocol visit the [White Paper](#).**
+
+# Cryptographic keys
+> To obtain a valid keypair with ed25519
 
 ```go
 package main
 
-import "github.com/bep/kittn/auth"
+import (
+	"golang.org/x/crypto/ed25519"
+	"log"
+	"math/rand"
+	"time"
+)
 
-func main() {
-	api := auth.Authorize("meowmeowmeow")
-
-	// Just to make it compile
-	_ = api
+func get_key_pair()(publicKey ed25519.PublicKey, privateKey ed25519.PrivateKey){
+	// Generate Key Pair from random data
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.New(rand.NewSource(time.Now().UnixNano())))
+	if err != nil{
+		log.Panic(err)
+	}
+	return publicKey, privateKey
 }
 ```
 
-```ruby
-require 'kittn'
+```shell
+# install a key generator tool
+go install github.com/crypt0cloud/keypair_generator
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
+# excecute the command
+keypair_generator
+
+[OUTPUT]
+> Algorithm: ed25519
+>
+> Pubic Key:
+> {PUBLIC_KEY}
+>
+> Private Key:
+> {PRIVATE_KEY}
+
+
 ```
 
-```python
-import kittn
+By design we use the algorithm ed25519 as our key pair algorithm.
 
-api = kittn.authorize('meowmeowmeow')
+It is extensible used in the following identifications
+
+* Coordinator Master keys
+* Nodes Signing keys
+* Distributed Applications Signing Keys
+* Transaction Signer
+
+# Coordinator
+## Register Master Key
+
+```go
+package main
+
+import (
+	"golang.org/x/crypto/ed25519"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+func coordinator_init(endpoint string, MKPublicKey ed25519.PublicKey) {
+
+	//Create client and register master public key to setup coordinator
+	client := cc.GetClient(endpoint)
+	client.Coord_RegisterMasterkey(MKPublicKey)
+
+}
 ```
 
 ```shell
 # With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
+curl http://{ENDPOINT}/api/v1/coord/register_masterkey?url={ENDPOINT}&key={MKPublicKey}
+
+# Make sure to replace `ENDPOINT` with your server url and `MKPublicKey` with your base64 uri enconded Master Public Key
 ```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
-
-# Kittens
-
-## Get All Kittens
-
-```go
-package main
-
-import "github.com/bep/kittn/auth"
-
-func main() {
-	api := auth.Authorize("meowmeowmeow")
-
-	_ = api.GetKittens()
-}
-```
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
-
-```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
-```
-
-This endpoint retrieves all kittens.
+To configure the Coordinator Endpoint it needs to know it's own public url (endpoint) and the public key of the master key that will be used for coordinator activities
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`GET /api/v1/coord/register_masterkey`
 
 ### Query Parameters
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
-
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
-## Get a Specific Kitten
-
-```go
-package main
-
-import "github.com/bep/kittn/auth"
-
-func main() {
-	api := auth.Authorize("meowmeowmeow")
-
-	_ = api.GetKitten(2)
-}
-```
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
-```
-
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
-### HTTP Request
-
-`GET http://example.com/kittens/<ID>`
-
-### URL Parameters
-
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to retrieve
+url | Escaped URL of the coordinator endpoint.
+key | base64 uri enconded Master Public Key
 
+
+
+
+## Add Nodes
+
+## Create Distributed Node
+
+# Nodes
+
+## Get Node Credentials
+
+## Create User
+
+# Single Transactions
+
+# Group Transactions
+
+## Initial Group Transaction
