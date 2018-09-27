@@ -99,7 +99,7 @@ To configure the Coordinator Endpoint it needs to know it's own public url (endp
 
 ### HTTP Request
 
-`GET /api/v1/coord/register_masterkey`
+`POST /api/v1/coord/register_masterkey`
 
 ### Query Parameters
 
@@ -112,6 +112,69 @@ key | base64 uri enconded Master Public Key
 
 
 ## Add Nodes
+
+```go
+package main
+
+import (
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func add_node(endpoint string, APP_PublicKey ed25519.PublicKey) {
+
+	//Create client and register master public key to setup coordinator
+	client := cc.GetClient(endpoint)
+	client.Coord_AddNode(APP_PublicKey,endpoint)
+
+}
+```
+
+```shell
+# With shell, you can just pass the correct header with each request
+curl http://{ENDPOINT}/api/v1/coord/register_nodes?url={ENDPOINT}&key={MKPublicKey}
+
+# Make sure to replace `ENDPOINT` with your server url and `MKPublicKey` with your base64 uri enconded Master Public Key
+```
+
+To configure a Node with the Coordinator it needs to know the node endpoint (endpoint) and the public key of the master key that will be used for coordinator activities
+
+### HTTP Request
+
+`POST /api/v1/coord/register_nodes`
+
+### POST Body
+> POST RAW BODY
+
+```JSON
+{
+		"Content": "{base64(register_node_payload)}",
+		"Sign":    "{base64(ed25519.Sign(MKPrivateKey, sha256(register_node_payload)))}"
+}
+```
+
+Methods used in the JSON representation
+
+Method | Description
+--------- | -----------
+base64([]byte) | Convert a byte array to a string encoded in base64.
+sha256([]byte) | Calculate a Hash sha256 from a byte array.
+ed25519.Sign(PrivateKey, payload) | Sign with a PrivateKey a payload, using the ed25519 algorithm.
+
+> Structure of the **register_node_payload**
+
+```JSON
+{
+		"Urls": ["{node_endpoint}"]
+}
+```
+
+Variables used in the JSON REPRESENTATION
+
+Method | Description
+--------- | -----------
+register_node_payload | the payload JSON structure that contains the url of the nodes.
+node_endpoint | The url of the server where the node is ready to serve.
 
 ## Create Distributed Node
 
