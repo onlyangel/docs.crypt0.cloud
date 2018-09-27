@@ -80,33 +80,31 @@ import (
 	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
 )
 
-func coordinator_init(endpoint string, MKPublicKey ed25519.PublicKey) {
+func coordinator_init(Endpoint string, MKPublicKey ed25519.PublicKey) {
 
 	//Create client and register master public key to setup coordinator
-	client := cc.GetClient(endpoint)
+	client := cc.GetClient(Endpoint)
 	client.Coord_RegisterMasterkey(MKPublicKey)
 
 }
 ```
-
+<!--
 ```shell
 # With shell, you can just pass the correct header with each request
 curl http://{ENDPOINT}/api/v1/coord/register_masterkey?url={ENDPOINT}&key={MKPublicKey}
 
 # Make sure to replace `ENDPOINT` with your server url and `MKPublicKey` with your base64 uri enconded Master Public Key
 ```
+-->
+
 To configure the Coordinator Endpoint it needs to know it's own public url (endpoint) and the public key of the master key that will be used for coordinator activities
 
-### HTTP Request
-
-`POST /api/v1/coord/register_masterkey`
-
-### Query Parameters
+### Parameters
 
 Parameter | Description
 --------- | -----------
-url | Escaped URL of the coordinator endpoint.
-key | base64 uri enconded Master Public Key
+Endpoint | Escaped URL of the coordinator endpoint.
+MKPublicKey | Master Public key
 
 
 
@@ -121,37 +119,47 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
-func add_node(endpoint string, APP_PublicKey ed25519.PublicKey) {
+func add_node(CoorEndpoint, NodeEndpoint string, MKPrivateKey ed25519.PrivateKey) {
 
-	//Create client and register master public key to setup coordinator
-	client := cc.GetClient(endpoint)
-	client.Coord_AddNode(APP_PublicKey,endpoint)
+	//Create client and register new Node
+	client := cc.GetClient(CoorEndpoint)
+	client.Coord_AddNode(MKPrivateKey, CoorEndpoint, NodeEndpoint)
 
 }
+
 ```
 
+<!--
 ```shell
 # With shell, you can just pass the correct header with each request
-curl http://{ENDPOINT}/api/v1/coord/register_nodes?url={ENDPOINT}&key={MKPublicKey}
+curl http://{ENDPOINT}/api/v1/coord/register_nodes
 
 # Make sure to replace `ENDPOINT` with your server url and `MKPublicKey` with your base64 uri enconded Master Public Key
 ```
+-->
 
 To configure a Node with the Coordinator it needs to know the node endpoint (endpoint) and the public key of the master key that will be used for coordinator activities
 
-### HTTP Request
+### Parameters
 
-`POST /api/v1/coord/register_nodes`
+Parameter | Description
+--------- | -----------
+CoorEndpoint | URL of the Coordinator server
+NodeEndpoint | URL of the Node to integrate to the Coordinator
+MKPrivateKey | The Master Private Key
 
-### POST Body
-> POST RAW BODY
 
-```JSON
+<!--
+> See JSON for POST RAW BODY
+
+```json
 {
+
 		"Content": "{base64(register_node_payload)}",
 		"Sign":    "{base64(ed25519.Sign(MKPrivateKey, sha256(register_node_payload)))}"
 }
 ```
+
 
 Methods used in the JSON representation
 
@@ -161,13 +169,15 @@ base64([]byte) | Convert a byte array to a string encoded in base64.
 sha256([]byte) | Calculate a Hash sha256 from a byte array.
 ed25519.Sign(PrivateKey, payload) | Sign with a PrivateKey a payload, using the ed25519 algorithm.
 
-> Structure of the **register_node_payload**
 
-```JSON
+> See JSON for the Structure of the **register_node_payload**
+
+```json
 {
 		"Urls": ["{node_endpoint}"]
 }
 ```
+
 
 Variables used in the JSON REPRESENTATION
 
@@ -175,8 +185,41 @@ Method | Description
 --------- | -----------
 register_node_payload | the payload JSON structure that contains the url of the nodes.
 node_endpoint | The url of the server where the node is ready to serve.
+-->
 
 ## Create Distributed App
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func create_app(CoorEndpoint string, MKPublicKey ed25519.PublicKey, MKPrivateKey ed25519.PrivateKey)(*model.Transaction, []byte, []byte){
+
+	client := cc.GetClient(CoorEndpoint)
+	NewAppTransaction, AppPublicKey, AppPrivateKey := client.Coord_CreateAPP(CoorEndpoint, MKPublicKey, MKPrivateKey)
+
+	return NewAppTransaction, AppPublicKey, AppPrivateKey
+
+}
+
+```
+
+
+To configure a Node with the Coordinator it needs to know the node endpoint (endpoint) and the public key of the master key that will be used for coordinator activities
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+CoorEndpoint | URL of the Coordinator server
+MKPublicKey | The Master Public Key
+MKPrivateKey | The Master Private Key
+
 
 # Nodes
 
