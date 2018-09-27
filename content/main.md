@@ -176,7 +176,7 @@ Method | Description
 register_node_payload | the payload JSON structure that contains the url of the nodes.
 node_endpoint | The url of the server where the node is ready to serve.
 
-## Create Distributed Node
+## Create Distributed App
 
 # Nodes
 
