@@ -225,7 +225,50 @@ MKPrivateKey | The Master Private Key
 
 ## Get Node Credentials
 
-## Create User
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+func node_get_credentials( NodeEndpoint string) *model.NodeIdentification {
+
+	client := cc.GetClient(NodeEndpoint)
+	return client.Node_GetCredentials()
+
+}
+```
+
+Every node have its credentials to let users interact with it. This call give you the Node Credentials
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+NodeEndpoint | URL of the Node to get the Credentials
+
+## Create User Keys
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+
+func node_create_user(NodeEndpoint string)(*model.Transaction, []byte, []byte){
+
+	client := cc.GetClient(NodeEndpoint)
+	return client.Node_CreateUser()
+
+}
+```
+
+Every node have its credentials to let users interact with it. This call give you the Node Credentials
 
 # Single Transactions
 
