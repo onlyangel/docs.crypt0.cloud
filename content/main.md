@@ -69,6 +69,186 @@ It is extensible used in the following identifications
 * Distributed Applications Signing Keys
 * Transaction Signer
 
+# Anatomy of a Transactions
+
+> Structure of the transaction
+
+```json
+{
+
+		"IdVal": 1234567890,
+
+		"Payload": "[5,6,7,8,9]",
+		"Parent": "UGFyZW50IFRyYW5zYWN0aW9uIElE",
+		"AppID": "QXBwbGljYXRpb24gSUQ=",
+		"SignerKinds": ["{Kind1}", "{Kind2}", "{KindN}"],
+		"SignKind": "{Kind2}",
+		"Callback": "http://www.example.com/callback_crypt0",
+		"FromNode": {
+			"Creation": 1538718116,
+			"PublicKey": "Tm9kZSBQdWJsaWMgS2V5",
+			"Endpoint": "http://node1.crypt0.cloud"
+		},
+		"ToNode": {
+			"Creation": 1538718116,
+			"PublicKey": "Tm9kZSBQdWJsaWMgS2V5",
+			"Endpoint": "http://node1.crypt0.cloud"
+		},
+
+		"Content": "{\"IdVal\": 1234567890,\"Payload\": \"[5,6, ... ... \" }",
+		"Hash": "4esJN33DeuOsUV9FFeQ70/8kVGg2hGbsM7gls3HjSLo=",
+		"Creation": 1538719000,
+
+		"Signer": "U2lnbmluZyBQdWJsaWMgS2V5",
+		"Sign": "U2lnbiBvZiBoYXNoIG9mIGNvbnRlbnQ=",
+		"InsertMoment": 1538721000
+}
+```
+
+# Single Transactions
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func create_single_transaction(Endpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) []byte {
+
+	client := cc.GetClient(Endpoint)
+	return client.PostSingleTransaction(transaction, UserPublicKey, UserPrivateKey)
+
+}
+```
+
+Single atomic transaction insertion is the simplest way to interact with the ledger.
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+Endpoint | Escaped URL of the node endpoint
+transaction | Structure of the transaction to insert
+UserPublicKey | User Public Key
+UserPrivateKey | User Private Key
+
+# Group Transactions
+
+The group transactions are lists of transaction defined in a new transaction group. An example of this will be de transaction of delivering a package:
+
+* HandSignReception
+* ConfirmDeliveryByCurier
+
+
+## Create Transactions group
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func create_group(Endpoint string, transaction *model.Transaction, AppPublicKey ed25519.PublicKey, AppPrivateKey ed25519.PrivateKey) []byte {
+
+	client := cc.GetClient(Endpoint)
+	return client.GroupCreate(transaction, AppPublicKey, AppPrivateKey)
+
+}
+```
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+Endpoint | Escaped URL of the node endpoint
+transaction | A transaction describing a group transaction
+AppPublicKey | App Public Key
+AppPrivateKey | App Private Key
+
+## Create Signing Request
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+func create_signing_request(Endpoint string, transaction *model.Transaction) []byte {
+
+	client := cc.GetClient(Endpoint)
+	return client.SigningRequestCreate(transaction)
+
+}
+```
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+Endpoint | Escaped URL of the node endpoint
+transaction | Structure of the transaction to insert
+
+## Get Signing Request
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+func get_signing_request(Endpoint string, transaction_id int64) *model.Transaction {
+
+	client := cc.GetClient(Endpoint)
+	return client.SigningRequestGet(transaction_id)
+
+}
+```
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+Endpoint | Escaped URL of the node endpoint
+transaction_id | Transaction IdVal
+
+## Commit Signed Request
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func sign_signing_request(Endpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) []byte {
+
+	client := cc.GetClient(Endpoint)
+	return client.SigningRequestSign(transaction, UserPublicKey, UserPrivateKey)
+
+}
+```
+
+### Parameters
+
+Parameter | Description
+--------- | -----------
+Endpoint | Escaped URL of the node endpoint
+transaction | A transaction received from SigningRequestGet
+UserPublicKey | User Public Key
+UserPrivateKey | User Private Key
+
 # Coordinator
 ## Register Master Key
 
@@ -269,107 +449,3 @@ func node_create_user(NodeEndpoint string)(*model.Transaction, []byte, []byte){
 ```
 
 Every node have its credentials to let users interact with it. This call give you the Node Credentials
-
-# Single Transactions
-
-
-```go
-package main
-
-import (
-	"github.com/crypt0cloud/core/model"
-	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
-	"golang.org/x/crypto/ed25519"
-)
-
-func create_single_transaction(CoorEndpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) ([]byte) {
-
-	client := cc.GetClient(CoorEndpoint)
-	return client.PostSingleTransaction(transaction,UserPublicKey, UserPrivateKey)
-
-}
-```
-
-Single transactions are the simplest way to interact with the ledger.
-
-# Group Transactions
-
-The group transactions are lists of transaction defined in a new transaction group. An example of this will be de transaction of delivering a package:
-
-* HandSignReception
-* ConfirmDeliveryByCurier
-
-
-## Create Transactions group
-
-```go
-package main
-
-import (
-	"github.com/crypt0cloud/core/model"
-	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
-	"golang.org/x/crypto/ed25519"
-)
-
-func create_group(CoorEndpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) []byte {
-
-	client := cc.GetClient(CoorEndpoint)
-	return client.GroupCreate(transaction, UserPublicKey, UserPrivateKey)
-
-}
-```
-
-## Create Signing Request
-
-```go
-package main
-
-import (
-	"github.com/crypt0cloud/core/model"
-	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
-)
-
-func create_signing_request(CoorEndpoint string, transaction *model.Transaction) []byte {
-
-	client := cc.GetClient(CoorEndpoint)
-	return client.SigningRequestCreate(transaction)
-
-}
-```
-
-## Get Signing Request
-
-```go
-package main
-
-import (
-	"github.com/crypt0cloud/core/model"
-	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
-)
-
-func get_signing_request(CoorEndpoint string, transaction_id int64) *model.Transaction {
-
-	client := cc.GetClient(CoorEndpoint)
-	return client.SigningRequestGet(transaction_id)
-
-}
-```
-
-## Commit Signed Request
-
-```go
-package main
-
-import (
-	"github.com/crypt0cloud/core/model"
-	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
-	"golang.org/x/crypto/ed25519"
-)
-
-func sign_signing_request(CoorEndpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) []byte {
-
-	client := cc.GetClient(CoorEndpoint)
-	return client.SigningRequestSign(transaction, UserPublicKey, UserPrivateKey)
-
-}
-```
