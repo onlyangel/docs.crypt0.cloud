@@ -294,4 +294,82 @@ Single transactions are the simplest way to interact with the ledger.
 
 # Group Transactions
 
-## Initial Group Transaction
+The group transactions are lists of transaction defined in a new transaction group. An example of this will be de transaction of delivering a package:
+
+* HandSignReception
+* ConfirmDeliveryByCurier
+
+
+## Create Transactions group
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func create_group(CoorEndpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) []byte {
+
+	client := cc.GetClient(CoorEndpoint)
+	return client.GroupCreate(transaction, UserPublicKey, UserPrivateKey)
+
+}
+```
+
+## Create Signing Request
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+func create_signing_request(CoorEndpoint string, transaction *model.Transaction) []byte {
+
+	client := cc.GetClient(CoorEndpoint)
+	return client.SigningRequestCreate(transaction)
+
+}
+```
+
+## Get Signing Request
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+)
+
+func get_signing_request(CoorEndpoint string, transaction_id int64) *model.Transaction {
+
+	client := cc.GetClient(CoorEndpoint)
+	return client.SigningRequestGet(transaction_id)
+
+}
+```
+
+## Commit Signed Request
+
+```go
+package main
+
+import (
+	"github.com/crypt0cloud/core/model"
+	cc "github.com/crypt0cloud/crypt0cloud-sdk-go"
+	"golang.org/x/crypto/ed25519"
+)
+
+func sign_signing_request(CoorEndpoint string, transaction *model.Transaction, UserPublicKey ed25519.PublicKey, UserPrivateKey ed25519.PrivateKey) []byte {
+
+	client := cc.GetClient(CoorEndpoint)
+	return client.SigningRequestSign(transaction, UserPublicKey, UserPrivateKey)
+
+}
+```
